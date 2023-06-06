@@ -1,9 +1,12 @@
 ﻿using HarmonyLib;
 using HarmonyLib.Tools;
+using LuxURPEssentials;
 using MelonLoader;
 using SLZ.Bonelab;
 using SLZ.Interaction;
+using SLZ.Marrow.Data;
 using SLZ.Player;
+using SLZ.Props.Weapons;
 using SLZ.Rig;
 using SLZ.VRMK;
 using System;
@@ -19,9 +22,9 @@ using UnityEngine;
 
 namespace HolsterResizer
 {
-    public class HolsterResize : MelonMod
+    public class HolsterResizer : MelonMod
     {
-        public static MelonLogger.Instance Logger => Melon<HolsterResize>.Logger;
+        public static MelonLogger.Instance Logger => Melon<HolsterResizer>.Logger;
         public static BonelabGameControl GameControl { get; private set; }
         public static RigManager PlayerRig => GameControl.PlayerRigManager;
 
@@ -47,18 +50,32 @@ namespace HolsterResizer
     /// This patch resizes all inventory body slots on avatar change. It also resizes the Items that are holstered
     /// </summary>
     [HarmonyPatch(typeof(RigManager), nameof(RigManager.SwitchAvatar))]
-    public static class SwapAvatarPatch
+    public static class SwitchAvatarPatch
     {
         public static void Postfix(RigManager __instance, Avatar newAvatar)
         {
-            HolsterResize.RelativeSize = __instance.avatar.height;
-            float relSize = HolsterResize.RelativeSize;
+            HolsterResizer.RelativeSize = __instance.avatar.height;
+            float relSize = HolsterResizer.RelativeSize;
 
-            //HolsterResize.Logger.Msg($"Loading avatar {__instance.avatar.name} with height abs: {__instance.avatar.height} rel: {relSize}!");
-
-            foreach (var v in __instance.inventory.bodySlots)
+            foreach (var bodySlot in __instance.inventory.bodySlots)
             {
-                v.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+                bodySlot.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+                if (bodySlot.name.Equals("BeltLf1"))
+                {
+                    InventoryAmmoReceiver iar = bodySlot.GetComponentInChildren<InventoryAmmoReceiver>();
+
+                    if (iar == null)
+                    {
+                        HolsterResizer.Logger.Warning("Couldn't find iar!");
+                        continue;
+                    }
+
+                    foreach (var mag in iar._magazineArts)
+                    {
+                        mag.GetComponent<Transform>().localScale = new Vector3(1, 1, 1);
+                        HolsterResizer.Logger.Msg($"Found and resized {mag.name}!");
+                    }
+                }
             }
         }
     }
@@ -72,7 +89,7 @@ namespace HolsterResizer
         public static void Postfix(InventorySlotReceiver __instance, IGrippable host)
         {
             GameObject go = __instance._slottedWeapon.interactableHost.gameObject;
-            float relSize = HolsterResize.RelativeSize;
+            float relSize = HolsterResizer.RelativeSize;
             go.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
         }
     }
@@ -86,8 +103,37 @@ namespace HolsterResizer
         public static void Prefix(InventorySlotReceiver __instance, Hand hand)
         {
             GameObject go = __instance._slottedWeapon.interactableHost.gameObject;
-            float relSize = 1 / HolsterResize.RelativeSize;
+            float relSize = 1 / HolsterResizer.RelativeSize;
             go.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+        }
+    }
+
+    /// <summary>
+    /// This patch handles the ammo pouch and it's magazines when you switch between ammo types
+    /// </summary>
+    [HarmonyPatch(typeof(InventoryAmmoReceiver), nameof(InventoryAmmoReceiver.SwitchMagazine))]
+    public static class SwitchMagazinePatch
+    {
+        public static void Postfix(InventoryAmmoReceiver __instance, MagazineData magazineData, CartridgeData cartridgeData)
+        {
+            float relSize = HolsterResizer.RelativeSize;
+            //__instance.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+            foreach (var mag in __instance._magazineArts)
+            {
+                mag.GetComponent<Transform>().localScale = new Vector3(1, 1, 1);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Should you grab a magazine that is the wrong size, this patch will scale it back
+    /// </summary>
+    [HarmonyPatch(typeof(Magazine), nameof(Magazine.OnGrab))]
+    public static class OnGrabPatch
+    {
+        public static void Postfix(Magazine __instance, Hand hand)
+        {
+            __instance.GetComponent<Transform>().localScale = new Vector3(1, 1, 1);
         }
     }
 }
