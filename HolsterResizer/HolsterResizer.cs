@@ -6,6 +6,7 @@ using SLZ.Bonelab;
 using SLZ.Interaction;
 using SLZ.Marrow.Data;
 using SLZ.Player;
+using SLZ.Props;
 using SLZ.Props.Weapons;
 using SLZ.Rig;
 using SLZ.VRMK;
@@ -57,6 +58,10 @@ namespace HolsterResizer
             HolsterResizer.RelativeSize = __instance.avatar.height;
             float relSize = HolsterResizer.RelativeSize;
 
+            // Resize the body log
+            PullCordDevice bodyLog = GameObject.FindObjectOfType<PullCordDevice>();
+            bodyLog.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+
             foreach (var bodySlot in __instance.inventory.bodySlots)
             {
                 bodySlot.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
@@ -73,7 +78,6 @@ namespace HolsterResizer
                     foreach (var mag in iar._magazineArts)
                     {
                         mag.GetComponent<Transform>().localScale = new Vector3(1, 1, 1);
-                        HolsterResizer.Logger.Msg($"Found and resized {mag.name}!");
                     }
                 }
             }
