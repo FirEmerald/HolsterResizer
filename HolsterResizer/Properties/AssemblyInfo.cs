@@ -37,7 +37,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 // MelonLoader mod stuff
-[assembly: MelonInfo(typeof(HolsterResizer.HolsterResize), "HolsterResizer", "0.1.0", "Toedtmanns")]
+[assembly: MelonInfo(typeof(HolsterResizer.HolsterResize), "HolsterResizer", "1.0.0", "Toedtmanns")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
 [assembly: MelonPlatform(MelonPlatformAttribute.CompatiblePlatforms.WINDOWS_X64)]
 [assembly: MelonPlatformDomain(MelonPlatformDomainAttribute.CompatibleDomains.IL2CPP)]

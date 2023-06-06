@@ -35,54 +35,11 @@ namespace HolsterResizer
         public override void OnInitializeMelon()
         {
             LoggerInstance.Msg("Loaded mod!");
-
-            GameControl = GameObject.FindObjectOfType(Il2CppType.Of<BonelabGameControl>()) as BonelabGameControl;
-
-            //PlayerRig.onAvatarSwapped += new Action(AvatarSwapCB);
         }
 
         public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             GameControl = GameObject.FindObjectOfType(Il2CppType.Of<BonelabGameControl>()) as BonelabGameControl;
-        }
-
-        public static void AvatarSwapCB()
-        {
-            Logger.Msg($"Loaded avatar {PlayerRig.avatarID} with height {PlayerRig.avatar.height}");
-        }
-    }
-
-    public static class DebugStuff<TMod> where TMod : MelonBase
-    {
-        public static void PrintClassFields<TClass>(TClass c)
-        {
-            MemberInfo[] members = typeof(TClass).GetMembers();
-
-            Melon<TMod>.Logger.Msg(ConsoleColor.Magenta, $"Memberinfo of class {typeof(TClass).FullName}");
-            foreach (MemberInfo m in members)
-            {
-                if (m.MemberType == MemberTypes.Property)
-                {
-                    PropertyInfo p = m as PropertyInfo;
-                    Melon<TMod>.Logger.Msg($"{m.Name}: {p.GetValue(c)}");
-                }
-                else if (m.MemberType == MemberTypes.Field)
-                {
-                    FieldInfo f = m as FieldInfo;
-                    Melon<TMod>.Logger.Msg($"{m.Name}: {f.GetValue(c)}");
-                }
-            }
-        }
-
-        public static void StackTrace()
-        {
-            StackTrace sT = new StackTrace();
-            StackFrame[] stackFrames = sT.GetFrames();
-
-            foreach (StackFrame frame in stackFrames)
-            {
-                Melon<TMod>.Logger.Msg(frame.GetMethod().Name);
-            }
         }
     }
 
@@ -94,12 +51,10 @@ namespace HolsterResizer
     {
         public static void Postfix(RigManager __instance, Avatar newAvatar)
         {
-            //newAvatar.RefreshBodyMeasurements();
             HolsterResize.RelativeSize = __instance.avatar.height;
             float relSize = HolsterResize.RelativeSize;
-            //float relSize = __instance.avatar.height;
 
-            HolsterResize.Logger.Msg($"Loading avatar {__instance.avatar.name} with height abs: {__instance.avatar.height} rel: {relSize}!");
+            //HolsterResize.Logger.Msg($"Loading avatar {__instance.avatar.name} with height abs: {__instance.avatar.height} rel: {relSize}!");
 
             foreach (var v in __instance.inventory.bodySlots)
             {
@@ -108,6 +63,9 @@ namespace HolsterResizer
         }
     }
 
+    /// <summary>
+    /// This patch resizes the item when dropped into an inventory slot
+    /// </summary>
     [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandDrop))]
     public static class OnHandDropPatch
     {
@@ -119,6 +77,9 @@ namespace HolsterResizer
         }
     }
 
+    /// <summary>
+    /// This patch resizes the item back to normal when taking it out of an inventory slot
+    /// </summary>
     [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandGrab))]
     public static class OnHandGrabPatch
     {
