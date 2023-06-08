@@ -92,7 +92,8 @@ namespace HolsterResizer
     {
         public static void Postfix(InventorySlotReceiver __instance, IGrippable host)
         {
-            GameObject go = __instance._slottedWeapon.interactableHost.gameObject;
+            //GameObject go = __instance._slottedWeapon.interactableHost.gameObject;
+            GameObject go = host.GetHostGameObject();
             float relSize = HolsterResizer.RelativeSize;
             go.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
         }
@@ -121,7 +122,6 @@ namespace HolsterResizer
         public static void Postfix(InventoryAmmoReceiver __instance, MagazineData magazineData, CartridgeData cartridgeData)
         {
             float relSize = HolsterResizer.RelativeSize;
-            //__instance.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
             foreach (var mag in __instance._magazineArts)
             {
                 mag.GetComponent<Transform>().localScale = new Vector3(1, 1, 1);
