@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
@@ -65,6 +67,9 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnhollowerBaseLib">
       <HintPath>E:\Steam\steamapps\common\BONELAB\MelonLoader\Managed\UnhollowerBaseLib.dll</HintPath>
+    </Reference>
+    <Reference Include="UnhollowerRuntimeLib">
+      <HintPath>E:\Steam\steamapps\common\BONELAB\MelonLoader\Managed\UnhollowerRuntimeLib.dll</HintPath>
     </Reference>
     <Reference Include="UniTask">
       <HintPath>E:\Steam\steamapps\common\BONELAB\MelonLoader\Managed\UniTask.dll</HintPath>

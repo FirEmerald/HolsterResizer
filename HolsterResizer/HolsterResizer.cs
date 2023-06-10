@@ -1,23 +1,14 @@
 ﻿using HarmonyLib;
-using HarmonyLib.Tools;
-using LuxURPEssentials;
 using MelonLoader;
 using SLZ.Bonelab;
 using SLZ.Interaction;
 using SLZ.Marrow.Data;
-using SLZ.Player;
 using SLZ.Props;
 using SLZ.Props.Weapons;
 using SLZ.Rig;
 using SLZ.VRMK;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Remoting.Messaging;
-using System.Text;
-using System.Threading.Tasks;
 using UnhollowerRuntimeLib;
 using UnityEngine;
 
@@ -26,24 +17,41 @@ namespace HolsterResizer
     public class HolsterResizer : MelonMod
     {
         public static MelonLogger.Instance Logger => Melon<HolsterResizer>.Logger;
-        public static BonelabGameControl GameControl { get; private set; }
-        public static RigManager PlayerRig => GameControl.PlayerRigManager;
-
-        private static float _relativeSize;
         public static float RelativeSize
         {
             get => _relativeSize;
             set => _relativeSize = value / 1.8f;
         }
+        private static float _relativeSize;
+        public static Vector3 RelativeSizeVec => new Vector3(_relativeSize, _relativeSize, _relativeSize);
 
-        public override void OnInitializeMelon()
+        public static void ToAvatarScale(Transform trans)
         {
-            LoggerInstance.Msg("Loaded mod!");
+            if (trans.lossyScale != RelativeSizeVec)
+            {
+                float factor = trans.localScale.x * (RelativeSize / trans.lossyScale.x);
+                trans.localScale = new Vector3(factor, factor, factor);
+            }
         }
 
-        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+        public static void ToNormalScale(Transform trans)
         {
-            GameControl = GameObject.FindObjectOfType(Il2CppType.Of<BonelabGameControl>()) as BonelabGameControl;
+            if (trans.lossyScale != new Vector3(1, 1, 1))
+            {
+                float factor = trans.localScale.x * (1 / trans.lossyScale.x);
+                trans.localScale = new Vector3(factor, factor, factor);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        public static void DbgLog(string msg)
+        {
+            Logger.Msg(msg);
+        }
+        [Conditional("DEBUG")]
+        public static void DbgLog(string msg, ConsoleColor color)
+        {
+            Logger.Msg(color, msg);
         }
     }
 
@@ -55,16 +63,20 @@ namespace HolsterResizer
     {
         public static void Postfix(RigManager __instance, Avatar newAvatar)
         {
+            HolsterResizer.DbgLog("Avatar change resize", ConsoleColor.DarkMagenta);
+
             HolsterResizer.RelativeSize = __instance.avatar.height;
             float relSize = HolsterResizer.RelativeSize;
 
             // Resize the body log
             PullCordDevice bodyLog = GameObject.FindObjectOfType<PullCordDevice>();
             bodyLog.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+            HolsterResizer.DbgLog($"Resized bodylog: {bodyLog.name}");
 
             foreach (var bodySlot in __instance.inventory.bodySlots)
             {
                 bodySlot.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+                HolsterResizer.DbgLog($"Resized {bodySlot.name}");
                 if (bodySlot.name.Equals("BeltLf1"))
                 {
                     InventoryAmmoReceiver iar = bodySlot.GetComponentInChildren<InventoryAmmoReceiver>();
@@ -92,10 +104,17 @@ namespace HolsterResizer
     {
         public static void Postfix(InventorySlotReceiver __instance, IGrippable host)
         {
-            //GameObject go = __instance._slottedWeapon.interactableHost.gameObject;
             GameObject go = host.GetHostGameObject();
+
+            if (__instance._weaponHost == null)
+            {
+                HolsterResizer.DbgLog($"Tried to holster {go.name} but didn't");
+                return;
+            }
+
             float relSize = HolsterResizer.RelativeSize;
-            go.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+            HolsterResizer.ToAvatarScale(go.GetComponent<Transform>());
+            HolsterResizer.DbgLog($"Holstered weapon resize: {go.name}", ConsoleColor.DarkMagenta);
         }
     }
 
@@ -105,11 +124,11 @@ namespace HolsterResizer
     [HarmonyPatch(typeof(InventorySlotReceiver), nameof(InventorySlotReceiver.OnHandGrab))]
     public static class OnHandGrabPatch
     {
-        public static void Prefix(InventorySlotReceiver __instance, Hand hand)
+        public static void Postfix(InventorySlotReceiver __instance, Hand hand)
         {
-            GameObject go = __instance._slottedWeapon.interactableHost.gameObject;
-            float relSize = 1 / HolsterResizer.RelativeSize;
-            go.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+            GameObject go = hand.AttachedReceiver.Host.GetHostGameObject();
+            HolsterResizer.ToNormalScale(go.GetComponent<Transform>());
+            HolsterResizer.DbgLog($"Unholstered weapon resize: {go.name}", ConsoleColor.DarkMagenta);
         }
     }
 
@@ -121,10 +140,12 @@ namespace HolsterResizer
     {
         public static void Postfix(InventoryAmmoReceiver __instance, MagazineData magazineData, CartridgeData cartridgeData)
         {
-            float relSize = HolsterResizer.RelativeSize;
+            Vector3 unitVec = new Vector3(1, 1, 1);
             foreach (var mag in __instance._magazineArts)
             {
-                mag.GetComponent<Transform>().localScale = new Vector3(1, 1, 1);
+                mag.GetComponent<Transform>().localScale = unitVec;
+                mag._firstCartridgeArt.GetComponent<Transform>().localScale = unitVec;
+                mag._secondCartridgeArt.GetComponent<Transform>().localScale = unitVec;
             }
         }
     }
@@ -137,7 +158,24 @@ namespace HolsterResizer
     {
         public static void Postfix(Magazine __instance, Hand hand)
         {
-            __instance.GetComponent<Transform>().localScale = new Vector3(1, 1, 1);
+            Vector3 unitVec = new Vector3(1, 1, 1);
+            __instance.GetComponent<Transform>().localScale = unitVec;
+            __instance._firstCartridgeArt.GetComponent<Transform>().localScale = unitVec;
+            __instance._secondCartridgeArt.GetComponent<Transform>().localScale = unitVec;
+        }
+    }
+
+    /// <summary>
+    /// This patch fixes the first magazine of a new ammo type being the wrong size
+    /// </summary>
+    [HarmonyPatch(typeof(Magazine), nameof(Magazine.OnSpawn))]
+    public static class OnSpawnMagPatch
+    {
+        public static void Postfix(Magazine __instance, GameObject go)
+        {
+            Vector3 unitVec = new Vector3(1, 1, 1);
+            HolsterResizer.DbgLog($"Spawned mag: {go.name}");
+            go.GetComponent<Transform>().localScale = unitVec;
         }
     }
 }
