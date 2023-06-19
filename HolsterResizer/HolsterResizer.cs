@@ -69,9 +69,17 @@ namespace HolsterResizer
             float relSize = HolsterResizer.RelativeSize;
 
             // Resize the body log
-            PullCordDevice bodyLog = GameObject.FindObjectOfType<PullCordDevice>();
-            bodyLog.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
-            HolsterResizer.DbgLog($"Resized bodylog: {bodyLog.name}");
+            PullCordDevice bodyLog = __instance.physicsRig.GetComponentInChildren<PullCordDevice>();
+
+            if (bodyLog != null)
+            {
+                bodyLog.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+                HolsterResizer.DbgLog($"Resized bodylog: {bodyLog.name}");
+            }
+            else
+            {
+                HolsterResizer.DbgLog("Couldn't find bodylog");
+            }
 
             foreach (var bodySlot in __instance.inventory.bodySlots)
             {
