@@ -39,8 +39,16 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>E:\Steam\steamapps\common\BONELAB\MelonLoader\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="BoneLib, Version=2.2.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>E:\Steam\steamapps\common\BONELAB\Mods\BoneLib.dll</HintPath>
+    </Reference>
     <Reference Include="Il2Cppmscorlib">
       <HintPath>E:\Steam\steamapps\common\BONELAB\MelonLoader\Managed\Il2Cppmscorlib.dll</HintPath>
+    </Reference>
+    <Reference Include="LabFusion, Version=1.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>E:\Steam\steamapps\common\BONELAB\Mods\LabFusion.dll</HintPath>
     </Reference>
     <Reference Include="MelonLoader">
       <HintPath>E:\Steam\steamapps\common\BONELAB\MelonLoader\MelonLoader.dll</HintPath>

@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("HolsterResizer")]
-[assembly: AssemblyCopyright("Copyright ©  2022")]
+[assembly: AssemblyCopyright("Copyright ©  2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,14 +33,13 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]
 
 // MelonLoader mod stuff
-[assembly: MelonInfo(typeof(HolsterResizer.HolsterResizer), "HolsterResizer", "1.0.2", "Toedtmanns")]
+[assembly: MelonInfo(typeof(HolsterResizer.HolsterResizer), "HolsterResizer", "1.1.0", "Toedtmanns")]
 [assembly: MelonGame("Stress Level Zero", "BONELAB")]
-[assembly: MelonPlatform(MelonPlatformAttribute.CompatiblePlatforms.WINDOWS_X64)]
-[assembly: MelonPlatformDomain(MelonPlatformDomainAttribute.CompatibleDomains.IL2CPP)]
+[assembly: MelonOptionalDependencies("BoneLib", "LabFusion")]
 
 #if DEBUG
 [assembly: MelonColor(System.ConsoleColor.Red)]

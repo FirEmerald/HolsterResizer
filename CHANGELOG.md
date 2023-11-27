@@ -1,3 +1,12 @@
+## 1.1.0
+- Removed platform restrictions
+    - The mod might work on Quest now
+- If BoneLib is installed, there now is a BoneMenu with some options
+    - SizeMultiplier: Adjust the relative size of the holsters
+    - Scale Up: Determines if the holsters scale up with big avatars
+    - Scale Down: Determines if the holsters scale down with small avatars
+    - Scale Bodylog: Determines if the bodylog also gets resized with avatars
+
 ## 1.0.2
 - Fixed bodylog resizing in multiplayer
 

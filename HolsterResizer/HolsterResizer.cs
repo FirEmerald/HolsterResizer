@@ -11,29 +11,174 @@ using System;
 using System.Diagnostics;
 using UnhollowerRuntimeLib;
 using UnityEngine;
+using BoneLib;
+using System.Linq;
+using BoneLib.BoneMenu.Elements;
+using LuxURPEssentials;
+using LabFusion.Network;
+using LabFusion.Representation;
+using LabFusion.Utilities;
+using System.Runtime.Remoting.Messaging;
 
 namespace HolsterResizer
 {
     public class HolsterResizer : MelonMod
     {
+        public const string BoneLibName = "BoneLib";
+        public const string FusionName = "LabFusion";
+        public const float DefaultSize = 1.8f;
+
+        // Instances
+        public static HolsterResizer Instance => Melon<HolsterResizer>.Instance;
         public static MelonLogger.Instance Logger => Melon<HolsterResizer>.Logger;
-        public static float RelativeSize
+
+        // Avatar sizing
+        public static float LocalRelativeSize
         {
-            get => _relativeSize;
-            set => _relativeSize = value / 1.8f;
+            get => _localRelativeSize * Melon<HolsterResizer>.Instance.SizeMultiplier;
+            set => _localRelativeSize = value / DefaultSize;
         }
-        private static float _relativeSize;
-        public static Vector3 RelativeSizeVec => new Vector3(_relativeSize, _relativeSize, _relativeSize);
+        private static float _localRelativeSize;
+        public static Vector3 RelativeSizeVec => new Vector3(_localRelativeSize, _localRelativeSize, _localRelativeSize);
+        public RigManager LocalRig { get; private set; }
+
+        // Some state info
+        public bool IsBoneLibLoaded { get; private set; } = false;
+        public bool IsFusionLoaded { get; private set; } = false;
+
+        // Menu elements
+        public float SizeMultiplier { get; private set; }
+        public bool ScaleUp { get; private set; }
+        public bool ScaleDown { get; private set; }
+        public bool ScaleBodylog { get; private set; }
+        protected FloatElement SizeMultiplierElement => _sizeMultiplierElement as FloatElement;
+        private object _sizeMultiplierElement;
+
+        // Preferences
+        private MelonPreferences_Category _localPreferences;
+        private MelonPreferences_Entry<float> _prefLocalSizeMultiplier;
+        private MelonPreferences_Entry<bool> _prefScaleUp;
+        private MelonPreferences_Entry<bool> _prefScaleDown;
+        private MelonPreferences_Entry<bool> _prefScaleBodylog;
+
+        public override void OnInitializeMelon()
+        {
+            base.OnInitializeMelon();
+
+            // Create or get preferences from MelonLoader
+            _localPreferences = MelonPreferences.CreateCategory("Holster Resizer");
+            _prefLocalSizeMultiplier = _localPreferences.CreateEntry("localSizeMultiplier", 1.0f);
+            _prefScaleUp = _localPreferences.CreateEntry("scaleUp", true);
+            _prefScaleDown = _localPreferences.CreateEntry("scaleDown", true);
+            _prefScaleBodylog= _localPreferences.CreateEntry("scaleBodylog", true);
+
+            // Get preference values
+            SizeMultiplier = _prefLocalSizeMultiplier.Value;
+            ScaleUp = _prefScaleUp.Value;
+            ScaleDown = _prefScaleDown.Value;
+            ScaleBodylog = _prefScaleBodylog.Value;
+
+            // If BoneLib is installed, add the submenu
+            if (GetMelonByName(BoneLibName) != null)
+            {
+                DbgLog("Found BoneLib");
+                IsBoneLibLoaded = true;
+                InitializeWithBonelib();
+
+                // If LabFusion is installed we need another way to get the local player rig as there might be multiple rigs
+                if (GetMelonByName(FusionName) != null)
+                {
+                    DbgLog("Found LabFusion");
+                    IsFusionLoaded = true;
+                    InitializeWithFusion();
+                }
+            }
+            else
+            {
+                DbgLog("Initializing without any optional dependencies");
+            }
+        }
+
+        public override void OnApplicationQuit()
+        {
+            base.OnApplicationQuit();
+
+            // Save preferences
+            _prefScaleUp.Value = ScaleUp;
+            _prefScaleDown.Value = ScaleDown;
+            _prefLocalSizeMultiplier.Value = SizeMultiplier;
+            MelonPreferences.SaveCategory<MelonPreferences_Category>("localPreferences");
+        }
+
+        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
+        {
+            base.OnSceneWasLoaded(buildIndex, sceneName);
+            if (!IsFusionLoaded)
+            {
+                LocalRig = GameObject.FindObjectOfType<RigManager>();
+            }
+        }
+
+        private void InitializeWithFusion()
+        {
+            // TODO(Toedtmanns): Check if this works in multiplayer
+            MultiplayerHooking.OnLocalPlayerCreated += OnLocalPlayerCreated;
+        }
+
+        private void InitializeWithBonelib()
+        {
+            // Create the submenu
+            MenuCategory menuCategory = BoneLib.BoneMenu.MenuManager.CreateCategory("Holster Resizer", Color.white);
+            _sizeMultiplierElement = menuCategory.CreateFloatElement("Holster size multiplier", Color.white, SizeMultiplier, 0.05f, 0.05f, 2.0f, OnSizeMultiplierChange);
+            menuCategory.CreateFunctionElement("Reset multiplier", Color.white, OnSizeMultiplierReset);
+            menuCategory.CreateBoolElement("Scale up with Avatar", Color.white, ScaleUp, OnScaleUpChange);
+            menuCategory.CreateBoolElement("Scale down with Avatar", Color.white, ScaleDown, OnScaleDownChange);
+            menuCategory.CreateBoolElement("Scale Bodylog", Color.white, ScaleBodylog, OnScaleBodylogChange);
+        }
+
+        // Menu callbacks
+        private void OnSizeMultiplierChange(float multiplier)
+        {
+            SizeMultiplier = multiplier;
+            ScaleHolsters(LocalRig, LocalRelativeSize);
+        }
+        private void OnSizeMultiplierReset()
+        {
+            SizeMultiplier = 1.0f;
+            SizeMultiplierElement.SetValue(SizeMultiplier);
+            ScaleHolsters(LocalRig, LocalRelativeSize);
+        }
+        private void OnScaleUpChange(bool scaleUp)
+        {
+            ScaleUp = scaleUp;
+        }
+        private void OnScaleDownChange(bool scaleDown)
+        {
+            ScaleDown = scaleDown;
+        }
+        private void OnScaleBodylogChange(bool scaleBodylog)
+        {
+            ScaleBodylog = scaleBodylog;
+            ScaleHolsters(LocalRig, LocalRelativeSize);
+        }
+
+        // LabFusion integration
+        private void OnLocalPlayerCreated(RigManager rig)
+        {
+            DbgLog("Got local player rig");
+            LocalRig = rig;
+        }
+
+        // Static methods
 
         public static void ToAvatarScale(Transform trans)
         {
             if (trans.lossyScale != RelativeSizeVec)
             {
-                float factor = trans.localScale.x * (RelativeSize / trans.lossyScale.x);
+                float factor = trans.localScale.x * (LocalRelativeSize / trans.lossyScale.x);
                 trans.localScale = new Vector3(factor, factor, factor);
             }
         }
-
         public static void ToNormalScale(Transform trans)
         {
             if (trans.lossyScale != new Vector3(1, 1, 1))
@@ -53,6 +198,62 @@ namespace HolsterResizer
         {
             Logger.Msg(color, msg);
         }
+
+        public static MelonBase GetMelonByName(string name)
+        {
+            foreach (var assembly in MelonAssembly.LoadedAssemblies)
+            {
+                foreach (var melon in assembly.LoadedMelons)
+                {
+                    if (melon.Info.Name == name)
+                        return melon;
+                }
+            }
+            return null;
+        }
+
+        public static void ScaleHolsters(RigManager rig, float size, bool scaleBodylog = true)
+        {
+            // Resize the bodylog
+            PullCordDevice bodyLog = rig.physicsRig.GetComponentInChildren<PullCordDevice>();
+
+            if (bodyLog != null)
+            {
+                if (scaleBodylog)
+                    bodyLog.GetComponent<Transform>().localScale = new Vector3(size, size, size);
+                else
+                {
+                    float relSize = HolsterResizer.Instance.SizeMultiplier;
+                    bodyLog.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
+                }
+                DbgLog($"Resized bodylog: {bodyLog.name}");
+            }
+            else
+            {
+                DbgLog("Couldn't find bodylog");
+            }
+
+            foreach (var bodySlot in rig.inventory.bodySlots)
+            {
+                bodySlot.GetComponent<Transform>().localScale = new Vector3(size, size, size);
+                DbgLog($"Resized {bodySlot.name}");
+                if (bodySlot.name.Equals("BeltLf1"))
+                {
+                    InventoryAmmoReceiver iar = bodySlot.GetComponentInChildren<InventoryAmmoReceiver>();
+
+                    if (iar == null)
+                    {
+                        Logger.Warning("Couldn't find iar!");
+                        continue;
+                    }
+
+                    foreach (var mag in iar._magazineArts)
+                    {
+                        mag.GetComponent<Transform>().localScale = new Vector3(1, 1, 1);
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -63,44 +264,22 @@ namespace HolsterResizer
     {
         public static void Postfix(RigManager __instance, Avatar newAvatar)
         {
+            // Resize only if it's the rig of the local player
+            if (HolsterResizer.Instance.LocalRig != null && __instance != HolsterResizer.Instance.LocalRig)
+                return;
+
             HolsterResizer.DbgLog("Avatar change resize", ConsoleColor.DarkMagenta);
 
-            HolsterResizer.RelativeSize = __instance.avatar.height;
-            float relSize = HolsterResizer.RelativeSize;
-
-            // Resize the body log
-            PullCordDevice bodyLog = __instance.physicsRig.GetComponentInChildren<PullCordDevice>();
-
-            if (bodyLog != null)
+            if ((HolsterResizer.Instance.ScaleDown || __instance.avatar.height > HolsterResizer.DefaultSize) &&
+                (HolsterResizer.Instance.ScaleUp || __instance.avatar.height < HolsterResizer.DefaultSize))
             {
-                bodyLog.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
-                HolsterResizer.DbgLog($"Resized bodylog: {bodyLog.name}");
+                HolsterResizer.LocalRelativeSize = __instance.avatar.height;
             }
             else
             {
-                HolsterResizer.DbgLog("Couldn't find bodylog");
+                HolsterResizer.LocalRelativeSize = HolsterResizer.DefaultSize;
             }
-
-            foreach (var bodySlot in __instance.inventory.bodySlots)
-            {
-                bodySlot.GetComponent<Transform>().localScale = new Vector3(relSize, relSize, relSize);
-                HolsterResizer.DbgLog($"Resized {bodySlot.name}");
-                if (bodySlot.name.Equals("BeltLf1"))
-                {
-                    InventoryAmmoReceiver iar = bodySlot.GetComponentInChildren<InventoryAmmoReceiver>();
-
-                    if (iar == null)
-                    {
-                        HolsterResizer.Logger.Warning("Couldn't find iar!");
-                        continue;
-                    }
-
-                    foreach (var mag in iar._magazineArts)
-                    {
-                        mag.GetComponent<Transform>().localScale = new Vector3(1, 1, 1);
-                    }
-                }
-            }
+            HolsterResizer.ScaleHolsters(__instance, HolsterResizer.LocalRelativeSize, HolsterResizer.Instance.ScaleBodylog);
         }
     }
 
@@ -120,7 +299,7 @@ namespace HolsterResizer
                 return;
             }
 
-            float relSize = HolsterResizer.RelativeSize;
+            float relSize = HolsterResizer.LocalRelativeSize;
             HolsterResizer.ToAvatarScale(go.GetComponent<Transform>());
             HolsterResizer.DbgLog($"Holstered weapon resize: {go.name}", ConsoleColor.DarkMagenta);
         }
