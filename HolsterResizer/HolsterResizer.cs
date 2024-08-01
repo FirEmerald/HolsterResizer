@@ -1,24 +1,15 @@
 ﻿using HarmonyLib;
 using MelonLoader;
-using SLZ.Bonelab;
-using SLZ.Interaction;
-using SLZ.Marrow.Data;
-using SLZ.Props;
-using SLZ.Props.Weapons;
-using SLZ.Rig;
-using SLZ.VRMK;
 using System;
 using System.Diagnostics;
-using UnhollowerRuntimeLib;
 using UnityEngine;
 using BoneLib;
 using System.Linq;
 using BoneLib.BoneMenu.Elements;
-using LuxURPEssentials;
-using LabFusion.Network;
-using LabFusion.Representation;
-using LabFusion.Utilities;
-using System.Runtime.Remoting.Messaging;
+using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Bonelab;
+using Il2CppSLZ.VRMK;
+using Il2CppSLZ.Marrow.Data;
 
 namespace HolsterResizer
 {
@@ -85,6 +76,8 @@ namespace HolsterResizer
                 IsBoneLibLoaded = true;
                 InitializeWithBonelib();
 
+                /*
+                 * TODO when Fusion is updated - beta patch 5 lacks the needed hook
                 // If LabFusion is installed we need another way to get the local player rig as there might be multiple rigs
                 if (GetMelonByName(FusionName) != null)
                 {
@@ -92,6 +85,7 @@ namespace HolsterResizer
                     IsFusionLoaded = true;
                     InitializeWithFusion();
                 }
+                 */
             }
             else
             {
@@ -119,11 +113,14 @@ namespace HolsterResizer
             }
         }
 
+        /*
+         * TODO when Fusion is updated - beta patch 5 lacks the needed hook
         private void InitializeWithFusion()
         {
             // TODO(Toedtmanns): Check if this works in multiplayer
             MultiplayerHooking.OnLocalPlayerCreated += OnLocalPlayerCreated;
         }
+         */
 
         private void InitializeWithBonelib()
         {
@@ -355,7 +352,7 @@ namespace HolsterResizer
     /// <summary>
     /// This patch fixes the first magazine of a new ammo type being the wrong size
     /// </summary>
-    [HarmonyPatch(typeof(Magazine), nameof(Magazine.OnSpawn))]
+    [HarmonyPatch(typeof(Magazine), nameof(Magazine.OnPoolSpawn))]
     public static class OnSpawnMagPatch
     {
         public static void Postfix(Magazine __instance, GameObject go)

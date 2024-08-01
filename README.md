@@ -8,4 +8,20 @@ If BoneLib is installed there's also a submenu where you can configure:
 - Scale Down: Determines if the holsters scale down with small avatars
 - Scale Bodylog: Determines if the bodylog also gets resized with avatars
 
-Compatible with Fusion
+~~Compatible with Fusion~~ Awaiting Fusion update
+
+## Compilation
+
+To compile this mod, create a file named `HolsterResizer.csproj.user` in the "HolsterResizer" folder of this
+project. Copy this text into the file, replacing the path in `BONELAB_PATH` with
+the path to your BONELAB installation.
+```
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <PropertyGroup>
+        <BONELAB_PATH>C:\Program Files (x86)\Steam\steamapps\common\BONELAB</BONELAB_PATH>
+    </PropertyGroup>
+</Project>
+```
+<br/>
+<br/>
