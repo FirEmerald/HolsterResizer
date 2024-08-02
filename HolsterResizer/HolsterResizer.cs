@@ -5,11 +5,11 @@ using System.Diagnostics;
 using UnityEngine;
 using BoneLib;
 using System.Linq;
-using BoneLib.BoneMenu.Elements;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.VRMK;
 using Il2CppSLZ.Marrow.Data;
+using BoneLib.BoneMenu;
 
 namespace HolsterResizer
 {
@@ -125,12 +125,12 @@ namespace HolsterResizer
         private void InitializeWithBonelib()
         {
             // Create the submenu
-            MenuCategory menuCategory = BoneLib.BoneMenu.MenuManager.CreateCategory("Holster Resizer", Color.white);
-            _sizeMultiplierElement = menuCategory.CreateFloatElement("Holster size multiplier", Color.white, SizeMultiplier, 0.05f, 0.05f, 2.0f, OnSizeMultiplierChange);
-            menuCategory.CreateFunctionElement("Reset multiplier", Color.white, OnSizeMultiplierReset);
-            menuCategory.CreateBoolElement("Scale up with Avatar", Color.white, ScaleUp, OnScaleUpChange);
-            menuCategory.CreateBoolElement("Scale down with Avatar", Color.white, ScaleDown, OnScaleDownChange);
-            menuCategory.CreateBoolElement("Scale Bodylog", Color.white, ScaleBodylog, OnScaleBodylogChange);
+            BoneLib.BoneMenu.Page menuCategory = Menu.CreatePage("Holster Resizer", Color.white);
+            _sizeMultiplierElement = menuCategory.CreateFloat("Holster size multiplier", Color.white, SizeMultiplier, 0.05f, 0.05f, 2.0f, OnSizeMultiplierChange);
+            menuCategory.CreateFunction("Reset multiplier", Color.white, OnSizeMultiplierReset);
+            menuCategory.CreateBool("Scale up with Avatar", Color.white, ScaleUp, OnScaleUpChange);
+            menuCategory.CreateBool("Scale down with Avatar", Color.white, ScaleDown, OnScaleDownChange);
+            menuCategory.CreateBool("Scale Bodylog", Color.white, ScaleBodylog, OnScaleBodylogChange);
         }
 
         // Menu callbacks
@@ -142,7 +142,7 @@ namespace HolsterResizer
         private void OnSizeMultiplierReset()
         {
             SizeMultiplier = 1.0f;
-            SizeMultiplierElement.SetValue(SizeMultiplier);
+            SizeMultiplierElement.Value = SizeMultiplier;
             ScaleHolsters(LocalRig, LocalRelativeSize);
         }
         private void OnScaleUpChange(bool scaleUp)
