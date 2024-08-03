@@ -34,6 +34,6 @@
     <PostBuildEvent>xcopy "$(TargetPath)" "$(BONELAB_PATH)\Mods" /y</PostBuildEvent> Disabled as it was always failing - VS was replacing $(TargetPath) and $(BONELAB_PATH) with empty string
   </PropertyGroup -->
   <ItemGroup>
-    <Content Include="VoidMenuEnabler.csproj.user" />
+    <Content Include="HolsterResizer.csproj.user" />
   </ItemGroup>
 </Project>
