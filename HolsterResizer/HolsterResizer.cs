@@ -350,13 +350,14 @@ namespace HolsterResizer
     }
 
     /// <summary>
-    /// This patch fixes the first magazine of a new ammo type being the wrong size
+    /// This patch fixes the first magazine of a new ammo type being the wrong size TODO this is still broken, IDK how to fix it. System.ArgumentException: Undefined target method for patch method static void HolsterResizer.OnSpawnMagPatch::Postfix(Il2CppSLZ.Marrow.Magazine __instance)
     /// </summary>
     [HarmonyPatch(typeof(Magazine), nameof(Magazine.OnPoolSpawn))]
     public static class OnSpawnMagPatch
     {
-        public static void Postfix(Magazine __instance, GameObject go)
+        public static void Postfix(Magazine __instance)
         {
+            GameObject go = __instance._poolee.gameObject;
             Vector3 unitVec = new Vector3(1, 1, 1);
             HolsterResizer.DbgLog($"Spawned mag: {go.name}");
             go.GetComponent<Transform>().localScale = unitVec;
