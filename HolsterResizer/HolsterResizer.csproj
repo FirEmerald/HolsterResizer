@@ -17,6 +17,9 @@
     <Reference Include="Il2Cppmscorlib">
       <HintPath>$(BONELAB_PATH)\MelonLoader\Il2CppAssemblies\Il2Cppmscorlib.dll</HintPath>
     </Reference>
+    <Reference Include="LabFusion">
+      <HintPath>$(BONELAB_PATH)\Mods\LabFusion.dll</HintPath>
+    </Reference>
     <Reference Include="MelonLoader">
       <HintPath>$(BONELAB_PATH)\MelonLoader\net6\MelonLoader.dll</HintPath>
     </Reference>

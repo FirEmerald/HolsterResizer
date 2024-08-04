@@ -10,6 +10,7 @@ using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.VRMK;
 using Il2CppSLZ.Marrow.Data;
 using BoneLib.BoneMenu;
+using LabFusion.Player;
 
 namespace HolsterResizer
 {
@@ -76,8 +77,6 @@ namespace HolsterResizer
                 IsBoneLibLoaded = true;
                 InitializeWithBonelib();
 
-                /*
-                 * TODO when Fusion is updated - beta patch 5 lacks the needed hook
                 // If LabFusion is installed we need another way to get the local player rig as there might be multiple rigs
                 if (GetMelonByName(FusionName) != null)
                 {
@@ -85,7 +84,6 @@ namespace HolsterResizer
                     IsFusionLoaded = true;
                     InitializeWithFusion();
                 }
-                 */
             }
             else
             {
@@ -113,14 +111,11 @@ namespace HolsterResizer
             }
         }
 
-        /*
-         * TODO when Fusion is updated - beta patch 5 lacks the needed hook
         private void InitializeWithFusion()
         {
             // TODO(Toedtmanns): Check if this works in multiplayer
-            MultiplayerHooking.OnLocalPlayerCreated += OnLocalPlayerCreated;
+            LocalPlayer.OnLocalRigCreated += OnLocalPlayerCreated;
         }
-         */
 
         private void InitializeWithBonelib()
         {

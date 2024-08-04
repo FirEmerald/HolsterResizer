@@ -8,7 +8,7 @@ If BoneLib is installed there's also a submenu where you can configure:
 - Scale Down: Determines if the holsters scale down with small avatars
 - Scale Bodylog: Determines if the bodylog also gets resized with avatars
 
-~~Compatible with Fusion~~ Awaiting Fusion update
+Compatible with Fusion
 
 ## Compilation
 
