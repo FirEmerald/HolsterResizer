@@ -120,7 +120,7 @@ namespace HolsterResizer
         private void InitializeWithBonelib()
         {
             // Create the submenu
-            BoneLib.BoneMenu.Page menuCategory = Menu.CreatePage("Holster Resizer", Color.white);
+            BoneLib.BoneMenu.Page menuCategory = BoneLib.BoneMenu.Page.Root.CreatePage("Holster Resizer", Color.white);
             _sizeMultiplierElement = menuCategory.CreateFloat("Holster size multiplier", Color.white, SizeMultiplier, 0.05f, 0.05f, 2.0f, OnSizeMultiplierChange);
             menuCategory.CreateFunction("Reset multiplier", Color.white, OnSizeMultiplierReset);
             menuCategory.CreateBool("Scale up with Avatar", Color.white, ScaleUp, OnScaleUpChange);
