@@ -1,6 +1,5 @@
 ﻿using MelonLoader;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
@@ -42,7 +41,7 @@ using System.Runtime.InteropServices;
 [assembly: MelonOptionalDependencies("BoneLib", "LabFusion")]
 
 #if DEBUG
-[assembly: MelonColor(System.ConsoleColor.Red)]
+[assembly: MelonColor(255, 255, 0, 0)]
 #else
-[assembly: MelonColor(System.ConsoleColor.Cyan)]
+[assembly: MelonColor(255, 0, 255, 255)]
 #endif

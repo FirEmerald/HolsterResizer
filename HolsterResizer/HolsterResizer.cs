@@ -3,8 +3,6 @@ using MelonLoader;
 using System;
 using System.Diagnostics;
 using UnityEngine;
-using BoneLib;
-using System.Linq;
 using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Bonelab;
 using Il2CppSLZ.VRMK;
